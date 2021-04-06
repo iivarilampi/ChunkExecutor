@@ -5,17 +5,19 @@ using System.Threading.Tasks;
 
 namespace ChunkExecutor
 {
-    public class ChunkExecutor:IChunkExecutor
+    public class SerialChunkExecutor:IChunkExecutor
     {
         private readonly int _chunkSize;
 
-        public ChunkExecutor(int chunkSize)
+        public SerialChunkExecutor(int chunkSize)
         {
             _chunkSize = chunkSize;
         }
-        public async Task Execute(Func<IEnumerable,Task> method,  IEnumerable objectList)
+        public async Task<int> Execute(Func<IEnumerable,Task> method,  IEnumerable objectList)
         {
             var chunk = new List<object>();
+            int processedItemCount = 0;
+            
             foreach (var listObject in objectList)
             {
                 chunk.Add(listObject);
@@ -23,6 +25,7 @@ namespace ChunkExecutor
                 if (chunk.Count == _chunkSize)
                 {
                     await method(chunk);
+                    processedItemCount += chunk.Count;
                     chunk.Clear();
                 }
             }
@@ -31,7 +34,10 @@ namespace ChunkExecutor
             if (chunk.Count > 0)
             {
                 await method(chunk);
+                processedItemCount += chunk.Count;
             }
+
+            return processedItemCount;
         }
     }
 }

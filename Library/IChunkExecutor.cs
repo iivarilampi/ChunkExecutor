@@ -6,6 +6,6 @@ namespace ChunkExecutor
 {
     interface IChunkExecutor
     {
-        Task Execute(Func<IEnumerable,Task> method,  IEnumerable objectList);
+        Task<int> Execute(Func<IEnumerable,Task> method,  IEnumerable objectList);
     }
 }
