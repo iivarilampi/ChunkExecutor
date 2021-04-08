@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Src\Src.csproj" />
+    <ProjectReference Include="..\Src\ChunkExecutor.csproj" />
   </ItemGroup>
 
 </Project>

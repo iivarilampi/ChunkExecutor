@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace ChunkExecutor
 {
-    interface IChunkExecutor
+    internal interface IChunkExecutor
     {
-        Task<int> Execute(Func<IEnumerable,Task> method,  IEnumerable objectList);
+        Task<int> Execute(Func<IEnumerable, Task> method, IEnumerable objectList);
     }
 }

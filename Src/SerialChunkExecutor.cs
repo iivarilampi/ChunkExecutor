@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ChunkExecutor
 {
-    public class SerialChunkExecutor:IChunkExecutor
+    public class SerialChunkExecutor : IChunkExecutor
     {
         private readonly int _chunkSize;
 
@@ -13,15 +13,16 @@ namespace ChunkExecutor
         {
             _chunkSize = chunkSize;
         }
-        public async Task<int> Execute(Func<IEnumerable,Task> method,  IEnumerable objectList)
+
+        public async Task<int> Execute(Func<IEnumerable, Task> method, IEnumerable objectList)
         {
             var chunk = new List<object>();
-            int processedItemCount = 0;
-            
+            var processedItemCount = 0;
+
             foreach (var listObject in objectList)
             {
                 chunk.Add(listObject);
-                
+
                 if (chunk.Count == _chunkSize)
                 {
                     await method(chunk);
@@ -29,7 +30,7 @@ namespace ChunkExecutor
                     chunk.Clear();
                 }
             }
-            
+
             // Execute the last chunk
             if (chunk.Count > 0)
             {
