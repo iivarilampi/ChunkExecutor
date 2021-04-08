@@ -1,14 +1,13 @@
-name: Build and test
+name: Build and test (feature branch commits + pull requests to main)
 
 on:
   push:
-    branches: [ main ]
+    branches-ignore: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
