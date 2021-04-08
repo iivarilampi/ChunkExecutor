@@ -1,5 +1,4 @@
-name: Build and test (feature branch commits + pull requests to main)
-
+name: Build and test
 on:
   push:
     branches-ignore: [ main ]
@@ -7,7 +6,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
