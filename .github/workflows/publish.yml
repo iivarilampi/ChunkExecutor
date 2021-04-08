@@ -21,7 +21,6 @@ jobs:
     - name: Publish ChunkExecutor
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
-          PROJECT_FILE_PATH: Library/Library.csproj
+          PROJECT_FILE_PATH: Src/ChunkExecutor.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           PACKAGE_NAME: ChunkExecutor
-          VERSION_STATIC: 0.1.0
