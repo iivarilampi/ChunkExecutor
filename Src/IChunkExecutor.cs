@@ -8,5 +8,7 @@ namespace ChunkExecutor
     {
         Task<int> Execute(Func<IEnumerable, Task> method, IEnumerable objectList);
         int ExecutedItemCount { get; }
+        
+        IEnumerable FailedObjects { get; }
     }
 }

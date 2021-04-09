@@ -50,5 +50,7 @@ namespace ChunkExecutor
         public int ExecutedItemCount {
             get { return _executedItemCount; }
         }
+
+        public IEnumerable FailedObjects { get; }
     }
 }
