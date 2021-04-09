@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChunkExecutor
@@ -8,16 +9,20 @@ namespace ChunkExecutor
     public class SerialChunkExecutor : IChunkExecutor
     {
         private readonly int _chunkSize;
+        private readonly TimeSpan _delayBetweenChunks;
+        private int _executedItemCount;
 
-        public SerialChunkExecutor(int chunkSize)
+        public SerialChunkExecutor(int chunkSize, TimeSpan? delayBetweenChunks = null)
         {
             _chunkSize = chunkSize;
+            _executedItemCount = 0;
+            _delayBetweenChunks = delayBetweenChunks.HasValue ? delayBetweenChunks.Value : TimeSpan.Zero;
         }
 
         public async Task<int> Execute(Func<IEnumerable, Task> method, IEnumerable objectList)
         {
-            var chunk = new List<object>();
-            var processedItemCount = 0;
+            var chunk = new List<object>(); 
+            _executedItemCount = 0;
 
             foreach (var listObject in objectList)
             {
@@ -26,8 +31,9 @@ namespace ChunkExecutor
                 if (chunk.Count == _chunkSize)
                 {
                     await method(chunk);
-                    processedItemCount += chunk.Count;
+                    _executedItemCount += chunk.Count;
                     chunk.Clear();
+                    Thread.Sleep(_delayBetweenChunks);
                 }
             }
 
@@ -35,10 +41,14 @@ namespace ChunkExecutor
             if (chunk.Count > 0)
             {
                 await method(chunk);
-                processedItemCount += chunk.Count;
+                _executedItemCount += chunk.Count;
             }
 
-            return processedItemCount;
+            return _executedItemCount;
+        }
+
+        public int ExecutedItemCount {
+            get { return _executedItemCount; }
         }
     }
 }
