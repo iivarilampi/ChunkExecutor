@@ -19,22 +19,20 @@ namespace ChunkExecutorTests
             _actualList = new List<int>();
         }
 
-        public static TheoryData<List<object>, List<object>, int> ListsWithFailingItems
+        public static TheoryData<List<object>, int> ListsWithFailingItems
         {
             get
             {
-                var data = new TheoryData<List<object>, List<object>, int>();
-
-                var listSize = 20;
-                var failingItemIndexes = new[] {0, 2, 3, listSize / 2, listSize - 1};
-                var inputList = Enumerable.Range(1, listSize).ToList().ConvertAll(i => (object) i);
-                foreach (var index in failingItemIndexes) inputList[index] = null;
-                for (var chunkSize = 1; chunkSize <= 10; chunkSize += 2)
+                var data = new TheoryData<List<object>, int>();
+                var listSizes = Enumerable.Range(10, 50).ToList();
+                foreach (var listSize in listSizes)
                 {
-                    var expectedList = new List<object>();
-                    inputList.Where(i => i != null).ToList().ForEach(i => expectedList.Add((int) i * 2));
-                    data.Add(inputList, expectedList, chunkSize);
+                    var failingItemIndexes = new[] {0, 2, 3, listSize / 2, listSize - 1};
+                    var inputList = Enumerable.Range(1, listSize).ToList().ConvertAll(i => (object) i);
+                    foreach (var index in failingItemIndexes) inputList[index] = null;
+                    for (var chunkSize = 1; chunkSize <= listSize / 2; ++chunkSize) data.Add(inputList, chunkSize);
                 }
+
                 return data;
             }
         }
@@ -63,22 +61,33 @@ namespace ChunkExecutorTests
             stopWatch.Start();
             var executedItemCount = sut.Execute(MultiplyWithTwo, inputList).Result;
             stopWatch.Stop();
-            Assert.Equal(expectedList.Count, executedItemCount);
-            Assert.Equal(expectedList.Count, sut.ExecutedItemCount);
-            Assert.Equal(expectedList, _actualList);
+
+            executedItemCount.Should().Be(expectedList.Count);
+            sut.ExecutedItemCount.Should().Be(expectedList.Count);
+            _actualList.Should().Equal(expectedList);
             var numberOfDelays = listSize / chunkSize - 1 + Math.Min(listSize % chunkSize, 1);
-            Assert.True(stopWatch.ElapsedMilliseconds >= numberOfDelays * delayInMilliseconds);
+            stopWatch.ElapsedMilliseconds.Should().BeGreaterOrEqualTo(numberOfDelays * delayInMilliseconds);
         }
 
         [Theory]
         [MemberData(nameof(ListsWithFailingItems), MemberType = typeof(SerialChunkExecutorTests))]
-        public void ListHasFailingItemsTest(List<object> inputList, List<object> expectedList, int chunkSize)
+        public void ListHasFailingItemsTest(List<object> inputList, int chunkSize)
         {
+            var expectedList = new List<int>();
+            for (var listIndex = 0; listIndex < inputList.Count; listIndex += chunkSize)
+            {
+                var actualChunkSize = Math.Min(chunkSize, inputList.Count() - listIndex);
+                var chunk = inputList.GetRange(listIndex, actualChunkSize).ToList();
+                expectedList.AddRange(chunk.TakeWhile(item => item is { }).Select(item => (int) item * 2));
+            }
+
             var sut = new SerialChunkExecutor(chunkSize);
             var exception = Record.ExceptionAsync(() => sut.Execute(MultiplyWithTwo, inputList));
             exception.Should().NotBeNull();
-            Assert.Equal(expectedList.Count, sut.ExecutedItemCount);
-            Assert.Equal(expectedList, _actualList.ConvertAll(i => (object) i));
+
+            sut.ExecutedItemCount.Should().BeLessOrEqualTo(expectedList.Count);
+            sut.FailedObjects.Should().HaveCountGreaterOrEqualTo(inputList.Count(i => i is null));
+            _actualList.Should().Equal(expectedList);
         }
     }
 }
